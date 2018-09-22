@@ -1,0 +1,20 @@
+{
+    "name": "cevantime/sherpa-rest",
+    "description": "A simple rest plugin for sherpa framework",
+    "type": "library",
+    "require": {
+        "cevantime/sherpa-framework": "@dev",
+        "symfony/yaml": "2.*",
+        "doctrine/orm": "2.*",
+        "doctrine/common": "^2.9",
+        "doctrine/migrations": "^1.8"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Thibault Truffert",
+            "email": "thibaulttruffert@hotmail.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
