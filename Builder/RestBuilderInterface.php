@@ -11,6 +11,6 @@ namespace Sherpa\Rest\Builder;
 
 interface RestBuilderInterface
 {
-    public function build(array $data);
-    public function update(array $data, $object);
+    public function build(array $data, $locale = '');
+    public function update(array $data, $entity, $locale = '');
 }

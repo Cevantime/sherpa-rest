@@ -7,6 +7,7 @@ use League\Fractal\Manager;
 use League\Fractal\Pagination\PagerfantaPaginatorAdapter;
 use League\Fractal\Resource\Collection;
 use League\Fractal\Resource\Item;
+use League\Fractal\TransformerAbstract;
 use Pagerfanta\Adapter\AdapterInterface;
 use Pagerfanta\Pagerfanta;
 use Psr\Http\Message\ServerRequestInterface;
@@ -18,7 +19,7 @@ use Sherpa\Rest\Utils\ClassNameResolver;
  *
  * @author cevantime
  */
-class RestFormatter implements RestFormatterInterface
+class DefaultRestFormatter implements RestFormatterInterface
 {
 
     private $request;
@@ -27,10 +28,11 @@ class RestFormatter implements RestFormatterInterface
     private $transformer;
     private $entityClass;
 
-    public function __construct(ServerRequestInterface $request, Generator $routeGenerator)
+    public function __construct(ServerRequestInterface $request, Generator $routeGenerator, TransformerAbstract $transformer)
     {
         $this->request = $request;
         $this->routeGenerator = $routeGenerator;
+        $this->transformer = $transformer;
     }
 
     /**
@@ -43,16 +45,26 @@ class RestFormatter implements RestFormatterInterface
     {
         $pager = (new Pagerfanta($adapter))->setCurrentPage((int) $page);
         $paginator = new PagerfantaPaginatorAdapter($pager, $this->getRoutePaginationFactory());
-        $resource = new Collection($pager->getCurrentPageResults(), $this->getTransformer());
+        $resource = new Collection($pager->getCurrentPageResults(), $this->transformer);
         $resource->setPaginator($paginator);
-        $manager = new Manager();
+        $manager = $this->createManager();
         return $manager->createData($resource)->toArray();
+    }
+
+    public function createManager()
+    {
+        $manager = new Manager();
+        $includes = $this->request->getQueryParams()['include'] ?? '';
+        $excludes = $this->request->getQueryParams()['exclude'] ?? '';
+        if($includes) $manager->parseIncludes($includes);
+        if($excludes) $manager->parseExcludes($excludes);
+        return $manager;
     }
 
     public function itemize($entity)
     {
-        $item = new Item($entity, $this->getTransformer());
-        return (new Manager())->createData($item)->toArray();
+        $item = new Item($entity, $this->transformer);
+        return $this->createManager()->createData($item)->toArray();
     }
 
     private function getRoutePaginationFactory()
@@ -66,26 +78,17 @@ class RestFormatter implements RestFormatterInterface
                 unset($attr['_route']);
                 unset($attr['_transformer']);
                 $query = $request->getQueryParams();
-                $query['page'] = $page;
-                return $routeGenerator->generate($route->name, $attr) . ($page > 1 ? '?' . http_build_query($query) : '');
+                if($page > 1) {
+                    $query['page'] = $page;
+                } else {
+                    unset($query['page']);
+                }
+                return $routeGenerator->generate($route->name, $attr) . '?' . ($query ? http_build_query($query) : '');
             };
         }
         return $this->routePaginationFactory;
     }
 
-    protected function getTransformer()
-    {
-        if (null === $this->transformer && null === ($this->transformer = $this->request->getAttribute('_transformer'))) {
-            $shortEntityName = ClassNameResolver::getShortClassName($this->entityClass);
-            $transformerClassName = 'App\\Transformer\\' . $shortEntityName . 'Transformer';
-            if (!class_exists($transformerClassName)) {
-                throw new TransformerNotFoundException($shortEntityName);
-            }
-            $this->transformer = new $transformerClassName();
-        }
-
-        return $this->transformer;
-    }
     public function getEntityClass()
     {
         return $this->entityClass;

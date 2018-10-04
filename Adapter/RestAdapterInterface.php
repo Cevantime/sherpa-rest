@@ -14,7 +14,7 @@ use Pagerfanta\Adapter\AdapterInterface;
  *
  * @author cevantime
  */
-interface RestDbAdapterInterface
+interface RestAdapterInterface
 {
     /**
      * @return AdapterInterface

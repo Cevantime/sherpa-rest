@@ -7,13 +7,19 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Sherpa\App\App;
 use Sherpa\Declaration\DeclarationInterface;
-use Sherpa\Rest\Adapter\DoctrineAdapter;
-use Sherpa\Rest\Adapter\RestDbAdapterInterface;
+use Sherpa\Kernel\Kernel;
+use Sherpa\Rest\Adapter\DefaultRestAdapter;
+use Sherpa\Rest\Adapter\RestAdapterInterface;
 use Sherpa\Rest\Builder\RestBuilderInterface;
 use Sherpa\Rest\Builder\RestBuilder;
+use Sherpa\Rest\Middleware\AddAdapter;
+use Sherpa\Rest\Middleware\AddBuilder;
+use Sherpa\Rest\Middleware\AddFormatter;
+use Sherpa\Rest\Middleware\AddTransformer;
+use Sherpa\Rest\Middleware\AddValidator;
 use Sherpa\Rest\Routing\CrudMap;
 use Sherpa\Rest\Routing\CrudRoute;
-use Sherpa\Rest\Formatter\RestFormatter;
+use Sherpa\Rest\Formatter\DefaultRestFormatter;
 use Sherpa\Rest\Formatter\RestFormatterInterface;
 use function DI\create;
 use function DI\get;
@@ -46,23 +52,17 @@ class Declaration implements DeclarationInterface
         $containerBuilder->addDefinitions([
             Generator::class => function() use ($generator) {
                 return $generator;
-            },
-            RestFormatterInterface::class => create(RestFormatter::class)->constructor(
-                get(ServerRequestInterface::class), 
-                get(Generator::class)
-            ),
-            RestDbAdapterInterface::class => create(DoctrineAdapter::class)->constructor(
-                get(EntityManagerInterface::class),
-                get(RestFormatterInterface::class)
-            ),
-            RestValidatorInterface::class => create(RestValidator::class)->constructor(
-                get(ServerRequestInterface::class)
-            ),
-            RestBuilderInterface::class => create(RestBuilder::class)->constructor(
-                get(ServerRequestInterface::class)
-            )
+            }
         ]);
-        
+
+        $app->delayed(function(App $app){
+            $container = $app->getContainer();
+            $app->add(new AddValidator($container));
+            $app->add(new AddBuilder($container));
+            $app->add(new AddAdapter($container));
+            $app->add(new AddTransformer($container));
+            $app->add(new AddFormatter($container));
+        });
     }
 
 }

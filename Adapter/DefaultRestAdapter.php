@@ -6,7 +6,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
 use Psr\Http\Message\ServerRequestInterface;
-use Sherpa\Rest\Abstractions\QueryBuilderFromArrayInterface;
+use Sherpa\Rest\Abstractions\DoctrineRestQueryBuilderInterface;
 use Sherpa\Rest\Formatter\RestFormatterInterface;
 use Sherpa\Rest\Service\RestFormatter;
 
@@ -15,49 +15,60 @@ use Sherpa\Rest\Service\RestFormatter;
  *
  * @author cevantime
  */
-class DoctrineAdapter extends RestDbAdapter
+class DefaultRestAdapter extends RestAdapter
 {
-    
+
     private $em;
-    private $paginator;
-    
-    public function __construct(EntityManagerInterface $em, RestFormatterInterface $paginator)
+
+    public function __construct(EntityManagerInterface $em)
     {
         $this->em = $em;
-        $this->paginator = $paginator;
     }
-    
+
     public function getEntityFromParams($id, array $params = [])
     {
-        return $this->getDefaultQueryBuilder('t', $params)
-            ->andWhere('t.id = :id')
-            ->setParameter('id', $id)
+        return $this->getItemQueryBuilder('t', $id, $params)
             ->getQuery()
             ->getOneOrNullResult();
     }
 
     public function getPageAdapterFromParams(array $params = [])
     {
-        $qb = $this->getDefaultQueryBuilder('t', $params);
+        $qb = $this->getListQueryBuilder('t', $params);
         return new DoctrineORMAdapter($qb);
     }
 
     /**
-     * 
+     *
      * @param EntityManagerInterface $em
      * @param ServerRequestInterface $request
      * @return QueryBuilder
      */
-    protected function getDefaultQueryBuilder($alias, array $params)
+    protected function getListQueryBuilder($alias, array $params)
     {
         $repository = $this->em->getRepository($this->entityClass);
-        
-        if($repository instanceof QueryBuilderFromArrayInterface) {
+
+        if ($repository instanceof DoctrineRestQueryBuilderInterface) {
             $qb = $repository->createQueryBuilderFromArray($alias, $params);
         } else {
             $qb = $repository->createQueryBuilder($alias);
         }
-        
+
+        return $qb;
+    }
+
+    protected function getItemQueryBuilder($alias, $identifier, array $params = [])
+    {
+        $repository = $this->em->getRepository($this->entityClass);
+
+        if ($repository instanceof DoctrineRestQueryBuilderInterface) {
+            $qb = $repository->createQueryBuilderFromIdentifier($alias, $identifier, $params);
+        } else {
+            $qb = $repository->createQueryBuilder($alias)
+                ->andWhere($alias . '.id = :id')
+                ->setParameter('id', $identifier);
+        }
+
         return $qb;
     }
 

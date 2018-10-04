@@ -11,6 +11,7 @@ use Aura\Router\Route;
  */
 class CrudRoute extends Route
 {
+    private $entityClass;
 
     public function __clone()
     {
@@ -20,4 +21,20 @@ class CrudRoute extends Route
         ]);
     }
 
+    /**
+     * @return mixed
+     */
+    public function getEntityClass()
+    {
+        return $this->entityClass;
+    }
+
+    /**
+     * @param mixed $entityClass
+     */
+    public function setEntityClass($entityClass): self
+    {
+        $this->entityClass = $entityClass;
+        return $this;
+    }
 }

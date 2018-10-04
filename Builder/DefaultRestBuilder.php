@@ -16,7 +16,7 @@ class DefaultRestBuilder implements RestBuilderInterface
 {
     use EntityClassAwareTrait;
 
-    public function build(array $data)
+    public function build(array $data, $locale = '')
     {
         $classRef = new \ReflectionClass($this->getEntityClass());
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
@@ -29,11 +29,11 @@ class DefaultRestBuilder implements RestBuilderInterface
         return $entity;
     }
 
-    public function update(array $data, $object)
+    public function update(array $data, $entity, $locale = '')
     {
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         foreach ($data as $key => $value) {
-            if($propertyAccessor->isWritable($object, $key)) {
+            if($propertyAccessor->isWritable($entity, $key)) {
                 $propertyAccessor->setValue($entity, $key, $value);
             }
         }

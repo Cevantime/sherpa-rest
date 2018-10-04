@@ -8,7 +8,7 @@ use Sherpa\Rest\EntityClassAwareTrait;
  *
  * @author cevantime
  */
-abstract class RestDbAdapter implements RestDbAdapterInterface
+abstract class RestAdapter implements RestAdapterInterface
 {
     use EntityClassAwareTrait;
 }
