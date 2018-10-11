@@ -75,8 +75,6 @@ class DefaultRestFormatter implements RestFormatterInterface
             $this->routePaginationFactory = function(int $page) use ($request, $routeGenerator) {
                 $route = $request->getAttribute('_route');
                 $attr = $route->attributes;
-                unset($attr['_route']);
-                unset($attr['_transformer']);
                 $query = $request->getQueryParams();
                 if($page > 1) {
                     $query['page'] = $page;
