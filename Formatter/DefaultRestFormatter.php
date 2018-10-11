@@ -27,12 +27,19 @@ class DefaultRestFormatter implements RestFormatterInterface
     private $routePaginationFactory;
     private $transformer;
     private $entityClass;
+    private $manager;
 
     public function __construct(ServerRequestInterface $request, Generator $routeGenerator, TransformerAbstract $transformer)
     {
         $this->request = $request;
         $this->routeGenerator = $routeGenerator;
         $this->transformer = $transformer;
+        $manager = new Manager();
+        $includes = $this->request->getQueryParams()['include'] ?? '';
+        $excludes = $this->request->getQueryParams()['exclude'] ?? '';
+        if($includes) $manager->parseIncludes($includes);
+        if($excludes) $manager->parseExcludes($excludes);
+        $this->manager = $manager;
     }
 
     /**
@@ -47,24 +54,19 @@ class DefaultRestFormatter implements RestFormatterInterface
         $paginator = new PagerfantaPaginatorAdapter($pager, $this->getRoutePaginationFactory());
         $resource = new Collection($pager->getCurrentPageResults(), $this->transformer);
         $resource->setPaginator($paginator);
-        $manager = $this->createManager();
+        $manager = $this->getManager();
         return $manager->createData($resource)->toArray();
     }
 
-    public function createManager()
+    public function getManager()
     {
-        $manager = new Manager();
-        $includes = $this->request->getQueryParams()['include'] ?? '';
-        $excludes = $this->request->getQueryParams()['exclude'] ?? '';
-        if($includes) $manager->parseIncludes($includes);
-        if($excludes) $manager->parseExcludes($excludes);
-        return $manager;
+        return $this->manager;
     }
 
     public function itemize($entity)
     {
         $item = new Item($entity, $this->transformer);
-        return $this->createManager()->createData($item)->toArray();
+        return $this->getManager()->createData($item)->toArray();
     }
 
     private function getRoutePaginationFactory()
