@@ -15,7 +15,7 @@ class DefaultRestValidator implements RestValidatorInterface
     /**
      * @return boolean
      */
-    public function validate(array &$data, array &$errors)
+    public function validate(InputBag $data)
     {
         return true;
     }

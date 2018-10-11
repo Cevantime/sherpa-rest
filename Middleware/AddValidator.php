@@ -10,10 +10,11 @@ namespace Sherpa\Rest\Middleware;
 
 
 use DI\Container;
+use Psr\Container\ContainerInterface;
 
 class AddValidator extends AddProcessor
 {
-    public function __construct(Container $container)
+    public function __construct(ContainerInterface $container)
     {
         parent::__construct($container, 'Validator');
     }

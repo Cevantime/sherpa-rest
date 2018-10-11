@@ -10,11 +10,13 @@ use Psr\Http\Message\ServerRequestInterface;
 use Sherpa\Rest\Adapter\RestAdapter;
 use Sherpa\Rest\Adapter\RestAdapterInterface;
 use Sherpa\Rest\Builder\RestBuilderInterface;
+use Sherpa\Rest\EntityClassAwareTrait;
 use Sherpa\Rest\Exception\TransformerNotFoundException;
 use Sherpa\Rest\Formatter\RestFormatterInterface;
 use Sherpa\Rest\Service\RestFormatter;
 use Sherpa\Rest\Utils\ClassNameResolver;
 use Sherpa\Rest\Validator\RestValidatorInterface;
+use Sherpa\Rest\Validator\InputBag;
 use Zend\Diactoros\Response\JsonResponse;
 
 /**
@@ -24,12 +26,7 @@ use Zend\Diactoros\Response\JsonResponse;
  */
 class RestController
 {
-    private $entityClass;
-
-    public function __construct(string $entityName)
-    {
-        $this->entityClass = $entityName;
-    }
+    use EntityClassAwareTrait;
 
     public function getList(ServerRequestInterface $request, RestAdapterInterface $adapter, RestFormatterInterface $pagination)
     {
@@ -39,7 +36,7 @@ class RestController
     public function getItem(RestAdapterInterface $adapter, RestFormatterInterface $formatter, ServerRequestInterface $request, $id)
     {
         $this->setEntityClasses([$adapter, $formatter]);
-        $entity = $adapter->getEntityFromParams($id, $request->getQueryParams());
+        $entity = $adapter->getEntityFromParams($id, $this->extractInputFromRequest($request)->getSentData());
         if (!$entity) {
             $this->createError();
         }
@@ -55,18 +52,18 @@ class RestController
     )
     {
         $this->setEntityClasses([$adapter, $builder, $formatter, $validator]);
-        $data = $this->extractDataFromRequest($request);
+        $input = $this->extractInputFromRequest($request);
 
-        $errors = [];
-        $valid = $validator->validate($data, $errors);
+        $valid = $validator->validate($input);
 
         if ($valid) {
-            $object = $builder->build($data, $request->getHeaderLine('Accept-Language'));
+            $object = $builder->build($input, $request->getHeaderLine('Accept-Language'));
             $adapter->persistEntity($object);
             return $this->createItemResponse($object, $formatter);
         }
+        $msg = $input->getErrors()->toArray();
 
-        $this->createError(['errors' => $errors], 400);
+        $this->createError($input->getErrors()->toArray()[0], 400);
 
     }
 
@@ -80,26 +77,25 @@ class RestController
     )
     {
         $this->setEntityClasses([$adapter, $builder, $formatter, $validator]);
-        $data = $this->extractDataFromRequest($request);
-        $errors = [];
+        $input = $this->extractInputFromRequest($request);
 
-        $valid = $validator->validate($data, $errors);
+        $valid = $validator->validate($input);
 
         if ($valid) {
-            $object = $adapter->getEntityFromParams($id, $data);
-            $builder->update($data, $object, $request->getHeaderLine('Accept-Language'));
+            $object = $adapter->getEntityFromParams($id, $input->getSentData());
+            $builder->update($input, $object);
             $adapter->persistEntity($object);
             return $this->createItemResponse($object, $formatter);
         }
 
-        $this->createError(['errors' => $errors], 400);
+        $this->createError($input->getErrors()->toArray()[0], 400);
 
     }
 
     public function deleteItem(RestAdapterInterface $adapter, ServerRequestInterface $request, $id)
     {
         $this->setEntityClasses([$adapter]);
-        $entity = $adapter->getEntityFromParams($id, $request->getQueryParams());
+        $entity = $adapter->getEntityFromParams($id, $this->extractInputFromRequest($request)->getSentData());
         if( ! $entity) {
             $this->createError('Entity not found', 404);
         }
@@ -122,7 +118,7 @@ class RestController
         $this->setEntityClasses([$adapter, $formatter]);
         $queryParams = $request->getQueryParams();
         $page = $queryParams['page'] ?? 1;
-        $data = $formatter->paginate($adapter->getPageAdapterFromParams($queryParams), $page);
+        $data = $formatter->paginate($adapter->getPageAdapterFromParams($this->extractInputFromRequest($request)->getSentData()), $page);
         return new JsonResponse($data);
     }
 
@@ -131,7 +127,7 @@ class RestController
         throw new HttpErrorException($msg, $code);
     }
 
-    protected function extractDataFromRequest(ServerRequestInterface $request)
+    protected function extractInputFromRequest(ServerRequestInterface $request)
     {
         $method = strtolower($request->getMethod());
         if (in_array($method, ['post'])) {
@@ -141,8 +137,8 @@ class RestController
         }  else {
             $data = $request->getQueryParams();
         }
-        $data['_uploaded_files'] = $request->getUploadedFiles();
-        return $data;
+
+        return new InputBag($data, $request->getUploadedFiles());
     }
 
     protected function setEntityClasses($objects)

@@ -2,11 +2,11 @@
 
 namespace Sherpa\Rest\Routing;
 
-use Aura\Router\Map;
+use Aura\Router\Route;
 use Sherpa\Rest\Controller\RestController;
-use Sherpa\Rest\Exception\InvalidControllerException;
 use Sherpa\Rest\Utils\Camelizer;
 use Sherpa\Rest\Utils\ClassNameResolver;
+use Sherpa\Routing\Map;
 
 /**
  * Description of CrudMap
@@ -15,49 +15,58 @@ use Sherpa\Rest\Utils\ClassNameResolver;
  */
 class CrudMap extends Map
 {
+    protected $namespace;
+
+    public function __construct(Route $protoRoute, string $namespace)
+    {
+        parent::__construct($protoRoute);
+        $this->namespace = $namespace;
+    }
 
     public function crud($entityClass, $extends = null, $prefixRoute = '', $prefixPath = '')
     {
         $shortEntityName = ClassNameResolver::getShortClassName($entityClass);
-        if (class_exists($controllerClass = 'App\\Controller\\' . $shortEntityName . 'Controller')) {
-            $controller = new $controllerClass($entityClass);
-        } else {
-            $controller = new RestController($entityClass);
+        if (!class_exists($controllerClass = $this->namespace . 'Controller\\' . $shortEntityName . 'Controller')) {
+            $controllerClass = RestController::class;
         }
         $snakeEntityName = Camelizer::snakify($shortEntityName);
-        $this->makeCrud($controller, $extends, $prefixRoute . $snakeEntityName . '.', $prefixPath . '/' . $snakeEntityName);
+        $this->makeCrud($controllerClass, $entityClass, $extends, $prefixRoute . $snakeEntityName . '.', $prefixPath . '/' . $snakeEntityName);
     }
 
-    public function crudFromController($controllerClass, $extends = null, $prefixRoute = '', $prefixPath = '')
+    public function crudFromController($controllerClass, $entityClass, $extends = null, $prefixRoute = '', $prefixPath = '')
     {
-        $controller = new $controllerClass();
-        $entity = Camelizer::snakify(ClassNameResolver::getShortClassName($controller->getEntityClass()));
-        $this->makeCrud($controller, $extends, $prefixRoute . $entity . '.', $prefixPath . '/' . $entity);
+        $this->makeCrud($controllerClass, $entityClass, $extends, $prefixRoute, $prefixPath);
     }
 
     public function removeRoute($name)
     {
-        unset($this->routes[$name]);
+        unset($this->routes[$this->protoRoute->getNamePrefix() . $name]);
     }
 
-    private function makeCrud($controller, $extends, $prefixRoute, $prefixPath)
+    private function makeCrud($controllerClass, $entityClass, $extends, $prefixRoute, $prefixPath)
     {
-        if (!($controller instanceof RestController)) {
-            throw InvalidControllerException(get_class($controller));
-        }
-
-        $this->attach($prefixRoute, $prefixPath, function (Map $map) use ($controller, $extends) {
-            $map->get('list', '', [$controller, 'getList'])->setEntityClass($controller->getEntityClass());
-            $map->get('item', '/{id}', [$controller, 'getItem'])->setEntityClass($controller->getEntityClass())
+        $this->attach($prefixRoute, $prefixPath, function (Map $map) use ($controllerClass, $entityClass, $extends) {
+            $map->get('list', '', $controllerClass . '::getList')
+                ->setControllerClass($controllerClass)
+                ->setEntityClass($entityClass);
+            $map->get('item', '/{id}', $controllerClass . '::getItem')
+                ->setControllerClass($controllerClass)
+                ->setEntityClass($entityClass)
                 ->tokens(['id' => '\d+']);
-            $map->post('create', '', [$controller, 'createItem'])->setEntityClass($controller->getEntityClass());
-            $map->delete('delete', '/{id}', [$controller, 'deleteItem'])->setEntityClass($controller->getEntityClass())
+            $map->post('create', '', $controllerClass . '::createItem')
+                ->setControllerClass($controllerClass)
+                ->setEntityClass($entityClass);
+            $map->delete('delete', '/{id}', $controllerClass . '::deleteItem')
+                ->setControllerClass($controllerClass)
+                ->setEntityClass($entityClass)
                 ->tokens(['id' => '\d+']);
-            $map->put('update', '/{id}', [$controller, 'updateItem'])->setEntityClass($controller->getEntityClass())
+            $map->put('update', '/{id}', $controllerClass . '::updateItem')
+                ->setControllerClass($controllerClass)
+                ->setEntityClass($entityClass)
                 ->tokens(['id' => '\d+']);
 
             if (is_callable($extends)) {
-                $extends($map, $controller);
+                $extends($map, $controllerClass);
             }
         });
     }

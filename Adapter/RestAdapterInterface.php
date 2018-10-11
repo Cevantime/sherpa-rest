@@ -8,6 +8,7 @@
 
 namespace Sherpa\Rest\Adapter;
 
+use Sherpa\Rest\Utils\Bag;
 use Pagerfanta\Adapter\AdapterInterface;
 
 /**
@@ -19,9 +20,9 @@ interface RestAdapterInterface
     /**
      * @return AdapterInterface
      */
-    public function getPageAdapterFromParams(array $params);
+    public function getPageAdapterFromParams(Bag $params);
     
-    public function getEntityFromParams($id, array $params);
+    public function getEntityFromParams($id, Bag $params);
     
     public function persistEntity($entity);
     

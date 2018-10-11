@@ -11,6 +11,7 @@ namespace Sherpa\Rest\Middleware;
 
 use Aura\Router\Route;
 use DI\Container;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -31,7 +32,7 @@ abstract class AddProcessor implements MiddlewareInterface
 
     private $type;
 
-    public function __construct(Container $container, string $type)
+    public function __construct(ContainerInterface $container, string $type)
     {
         $this->container = $container;
         $this->type = $type;
@@ -48,12 +49,8 @@ abstract class AddProcessor implements MiddlewareInterface
             return $handler->handle($request);
         }
         $class = $this->getClass($request);
-        $this->container->set($classname, $this->container->has($class) ? get($class) : create($class));
-//        if ($this->type === 'Adapter') {
-//            var_dump($classname);
-//            var_dump($class);
-//            die();
-//        }
+        $this->container->set($classname, $this->container->get($class));
+
         return $handler->handle($request);
     }
 
@@ -61,9 +58,9 @@ abstract class AddProcessor implements MiddlewareInterface
     {
         $route = $request->getAttribute('_route');
 
-        if ($validator = $request->getAttribute('_' . lcfirst($this->type))) {
+        if ($validator = $route->{'get' . ucfirst($this->type)}()) {
             return $validator;
-        } else if (class_exists($validator = 'App\\' . ucfirst($this->type) . '\\' . ClassNameResolver::getShortClassName($route->getEntityClass()) . ucfirst($this->type))) {
+        } else if (class_exists($validator = $this->container->get('namespace') . ucfirst($this->type) . '\\' . ClassNameResolver::getShortClassName($route->getEntityClass()) . ucfirst($this->type))) {
             return $validator;
         } else {
             return 'Sherpa\\Rest\\' . ucfirst($this->type) . '\\DefaultRest' . ucfirst($this->type);

@@ -12,6 +12,7 @@ namespace Sherpa\Rest\Middleware;
 use Aura\Router\Route;
 use DI\Container;
 use League\Fractal\TransformerAbstract;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -32,7 +33,7 @@ class AddTransformer implements MiddlewareInterface
      */
     private $container;
 
-    public function __construct(Container $container)
+    public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
     }
@@ -48,7 +49,7 @@ class AddTransformer implements MiddlewareInterface
         }
 
         $transformer = $this->getBuilderClass($request);
-        $this->container->set(TransformerAbstract::class, $this->container->has($transformer) ? get($transformer) : create($transformer));
+        $this->container->set(TransformerAbstract::class, $this->container->get($transformer));
 
         return $handler->handle($request);
     }
@@ -57,11 +58,13 @@ class AddTransformer implements MiddlewareInterface
     {
         $route = $request->getAttribute('_route');
 
-        if ($validator = $request->getAttribute('_transformer')) {
+        if ($validator = $route->getTransformer()) {
             return $validator;
-        } else if (class_exists($validator = 'App\\Transformer\\' . ClassNameResolver::getShortClassName($route->getEntityClass()) . 'Transformer')) {
+        } else if (class_exists($validator = $this->container->get('namespace').'Transformer\\' . ClassNameResolver::getShortClassName($route->getEntityClass()) . 'Transformer')) {
             return $validator;
         }
+
+        var_dump($route);die();
 
         throw new TransformerNotFoundException($route->getEntityClass());
     }

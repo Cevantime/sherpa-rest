@@ -9,8 +9,10 @@
 namespace Sherpa\Rest\Builder;
 
 
+use Sherpa\Rest\Validator\InputBag;
+
 interface RestBuilderInterface
 {
-    public function build(array $data, $locale = '');
-    public function update(array $data, $entity, $locale = '');
+    public function build(InputBag $data);
+    public function update(InputBag $data, $entity);
 }

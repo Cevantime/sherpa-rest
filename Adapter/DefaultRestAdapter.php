@@ -4,6 +4,7 @@ namespace Sherpa\Rest\Adapter;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
+use Sherpa\Rest\Utils\Bag;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
 use Psr\Http\Message\ServerRequestInterface;
 use Sherpa\Rest\Abstractions\DoctrineRestQueryBuilderInterface;
@@ -25,14 +26,14 @@ class DefaultRestAdapter extends RestAdapter
         $this->em = $em;
     }
 
-    public function getEntityFromParams($id, array $params = [])
+    public function getEntityFromParams($id, Bag $params)
     {
         return $this->getItemQueryBuilder('t', $id, $params)
             ->getQuery()
             ->getOneOrNullResult();
     }
 
-    public function getPageAdapterFromParams(array $params = [])
+    public function getPageAdapterFromParams(Bag $params)
     {
         $qb = $this->getListQueryBuilder('t', $params);
         return new DoctrineORMAdapter($qb);
@@ -44,7 +45,7 @@ class DefaultRestAdapter extends RestAdapter
      * @param ServerRequestInterface $request
      * @return QueryBuilder
      */
-    protected function getListQueryBuilder($alias, array $params)
+    protected function getListQueryBuilder($alias, Bag $params)
     {
         $repository = $this->em->getRepository($this->entityClass);
 
@@ -57,7 +58,7 @@ class DefaultRestAdapter extends RestAdapter
         return $qb;
     }
 
-    protected function getItemQueryBuilder($alias, $identifier, array $params = [])
+    protected function getItemQueryBuilder($alias, $identifier, Bag $params)
     {
         $repository = $this->em->getRepository($this->entityClass);
 

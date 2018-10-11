@@ -19,6 +19,6 @@ interface RestValidatorInterface
     /**
      * @return boolean
      */
-    public function validate(array &$data, array &$errors);
+    public function validate(InputBag $input);
     
 }

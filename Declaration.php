@@ -14,6 +14,7 @@ use Sherpa\Rest\Builder\RestBuilderInterface;
 use Sherpa\Rest\Builder\RestBuilder;
 use Sherpa\Rest\Middleware\AddAdapter;
 use Sherpa\Rest\Middleware\AddBuilder;
+use Sherpa\Rest\Middleware\AddController;
 use Sherpa\Rest\Middleware\AddFormatter;
 use Sherpa\Rest\Middleware\AddTransformer;
 use Sherpa\Rest\Middleware\AddValidator;
@@ -39,7 +40,7 @@ class Declaration implements DeclarationInterface
         $routerContainer = $app->getRouter();
         
         $routerContainer->setMapFactory(function() use ($app) {
-            return new CrudMap(new CrudRoute());
+            return new CrudMap(new CrudRoute(), $app->get('namespace'));
         });
         $routerContainer->setRouteFactory(function(){
             return new CrudRoute();
@@ -62,6 +63,7 @@ class Declaration implements DeclarationInterface
             $app->add(new AddAdapter($container));
             $app->add(new AddTransformer($container));
             $app->add(new AddFormatter($container));
+            $app->add(new AddController($container));
         });
     }
 

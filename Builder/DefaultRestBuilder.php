@@ -10,13 +10,14 @@ namespace Sherpa\Rest\Builder;
 
 
 use Sherpa\Rest\EntityClassAwareTrait;
+use Sherpa\Rest\Validator\InputBag;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 class DefaultRestBuilder implements RestBuilderInterface
 {
     use EntityClassAwareTrait;
 
-    public function build(array $data, $locale = '')
+    public function build(InputBag $data)
     {
         $classRef = new \ReflectionClass($this->getEntityClass());
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
@@ -29,7 +30,7 @@ class DefaultRestBuilder implements RestBuilderInterface
         return $entity;
     }
 
-    public function update(array $data, $entity, $locale = '')
+    public function update(InputBag $data, $entity)
     {
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         foreach ($data as $key => $value) {
