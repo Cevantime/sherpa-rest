@@ -35,13 +35,13 @@ class AddController implements MiddlewareInterface
     {
         $route = $request->getAttribute('_route');
 
-        if( ! ($route instanceof CrudRoute)) {
+        if (!$route->getEntityClass()) {
             return $handler->handle($request);
         }
 
         $controllerClass = $route->getControllerClass();
         $entityClass = $route->getEntityClass();
-        $this->container->call($controllerClass . '::setEntityClass' , [$entityClass]);
+        $this->container->call($controllerClass . '::setEntityClass', [$entityClass]);
         return $handler->handle($request);
     }
 }

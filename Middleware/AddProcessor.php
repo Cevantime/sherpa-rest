@@ -44,20 +44,21 @@ abstract class AddProcessor implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+        $route = $request->getAttribute('_route');
         $classname = 'Sherpa\\Rest\\' . ucfirst($this->type) . '\\Rest' . ucfirst($this->type) . 'Interface';
-        if ($this->container->has($classname)) {
+
+        if ( ! $route->getEntityClass() || $this->container->has($classname)) {
             return $handler->handle($request);
         }
-        $class = $this->getClass($request);
+
+        $class = $this->getClass($request, $route);
         $this->container->set($classname, $this->container->get($class));
 
         return $handler->handle($request);
     }
 
-    public function getClass(ServerRequestInterface $request)
+    public function getClass($route)
     {
-        $route = $request->getAttribute('_route');
-
         if ($validator = $route->{'get' . ucfirst($this->type)}()) {
             return $validator;
         } else if (class_exists($validator = $this->container->get('namespace') . ucfirst($this->type) . '\\' . ClassNameResolver::getShortClassName($route->getEntityClass()) . ucfirst($this->type))) {

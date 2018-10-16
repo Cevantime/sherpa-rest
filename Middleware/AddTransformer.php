@@ -44,27 +44,25 @@ class AddTransformer implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        if($this->container->has(TransformerAbstract::class)) {
+        $route = $request->getAttribute('_route');
+
+        if(! $route->getEntityClass() || $this->container->has(TransformerAbstract::class)) {
            return $handler->handle($request);
         }
 
-        $transformer = $this->getBuilderClass($request);
+        $transformer = $this->getBuilderClass($request, $route);
         $this->container->set(TransformerAbstract::class, $this->container->get($transformer));
 
         return $handler->handle($request);
     }
 
-    public function getBuilderClass(ServerRequestInterface $request)
+    public function getBuilderClass($route)
     {
-        $route = $request->getAttribute('_route');
-
         if ($validator = $route->getTransformer()) {
             return $validator;
         } else if (class_exists($validator = $this->container->get('namespace').'Transformer\\' . ClassNameResolver::getShortClassName($route->getEntityClass()) . 'Transformer')) {
             return $validator;
         }
-
-        var_dump($route);die();
 
         throw new TransformerNotFoundException($route->getEntityClass());
     }
