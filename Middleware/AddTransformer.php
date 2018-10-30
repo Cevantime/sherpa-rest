@@ -50,7 +50,7 @@ class AddTransformer implements MiddlewareInterface
            return $handler->handle($request);
         }
 
-        $transformer = $this->getBuilderClass($request, $route);
+        $transformer = $this->getBuilderClass($route);
         $this->container->set(TransformerAbstract::class, $this->container->get($transformer));
 
         return $handler->handle($request);
@@ -60,7 +60,7 @@ class AddTransformer implements MiddlewareInterface
     {
         if ($validator = $route->getTransformer()) {
             return $validator;
-        } else if (class_exists($validator = $this->container->get('namespace').'Transformer\\' . ClassNameResolver::getShortClassName($route->getEntityClass()) . 'Transformer')) {
+        } else if (class_exists($validator = $this->container->get('project.namespace').'Transformer\\' . ClassNameResolver::getShortClassName($route->getEntityClass()) . 'Transformer')) {
             return $validator;
         }
 

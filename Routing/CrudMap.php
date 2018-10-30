@@ -3,7 +3,7 @@
 namespace Sherpa\Rest\Routing;
 
 use Aura\Router\Route;
-use Sherpa\Rest\Controller\RestController;
+use Sherpa\Rest\Controller\RestCrudController;
 use Sherpa\Rest\Utils\Camelizer;
 use Sherpa\Rest\Utils\ClassNameResolver;
 use Sherpa\Routing\Map;
@@ -27,7 +27,7 @@ class CrudMap extends Map
     {
         $shortEntityName = ClassNameResolver::getShortClassName($entityClass);
         if (!class_exists($controllerClass = $this->namespace . 'Controller\\' . $shortEntityName . 'Controller')) {
-            $controllerClass = RestController::class;
+            $controllerClass = RestCrudController::class;
         }
         $snakeEntityName = Camelizer::snakify($shortEntityName);
         $this->makeCrud($controllerClass, $entityClass, $extends, $prefixRoute . $snakeEntityName . '.', $prefixPath . '/' . $snakeEntityName);

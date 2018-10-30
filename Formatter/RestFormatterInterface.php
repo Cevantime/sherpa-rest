@@ -16,7 +16,17 @@ use Pagerfanta\Adapter\AdapterInterface;
  */
 interface RestFormatterInterface
 {
+    /**
+     *
+     * @param AdapterInterface $adapter
+     * @param int $page
+     * @return array
+     */
     public function paginate(AdapterInterface $adapter, int $page = 1);
 
+    /**
+     * @param $entity
+     * @return array
+     */
     public function itemize($entity);
 }

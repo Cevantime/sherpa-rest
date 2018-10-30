@@ -12,10 +12,10 @@ namespace Sherpa\Rest\Middleware;
 use DI\Container;
 use Psr\Container\ContainerInterface;
 
-class AddAdapter extends AddProcessor
+class AddDoctrineAdapter extends AddProcessor
 {
     public function __construct(ContainerInterface $container)
     {
-        parent::__construct($container, 'Adapter');
+        parent::__construct($container, 'Adapter', 'Doctrine');
     }
 }

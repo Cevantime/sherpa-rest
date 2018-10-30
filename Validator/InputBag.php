@@ -114,7 +114,7 @@ class InputBag implements \ArrayAccess
      */
     public function offsetGet($offset)
     {
-        return $this->data[$offset] ?? $this->uploadedFiles[$offset] ?? $this->errors[$offset];
+        return $this->data[$offset] ?? $this->uploadedFiles[$offset];
     }
 
     /**

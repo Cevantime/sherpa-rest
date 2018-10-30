@@ -43,10 +43,10 @@ class DefaultRestFormatter implements RestFormatterInterface
     }
 
     /**
-     * 
-     * @param type $queryBuilder
-     * @param type $transformer
-     * @return Collection
+     *
+     * @param AdapterInterface $adapter
+     * @param int $page
+     * @return array
      */
     public function paginate(AdapterInterface $adapter, int $page = 1)
     {
@@ -63,6 +63,10 @@ class DefaultRestFormatter implements RestFormatterInterface
         return $this->manager;
     }
 
+    /**
+     * @param $entity
+     * @return array
+     */
     public function itemize($entity)
     {
         $item = new Item($entity, $this->transformer);

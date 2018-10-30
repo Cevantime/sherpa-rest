@@ -3,16 +3,19 @@
 namespace Sherpa\Rest;
 
 use Aura\Router\Generator;
+use DI\ContainerBuilder;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Sherpa\App\App;
 use Sherpa\Declaration\DeclarationInterface;
 use Sherpa\Kernel\Kernel;
-use Sherpa\Rest\Adapter\DefaultRestAdapter;
+use Sherpa\Middlewares\RequestHandler;
+use Sherpa\Rest\Adapter\DoctrineRestAdapter;
 use Sherpa\Rest\Adapter\RestAdapterInterface;
 use Sherpa\Rest\Builder\RestBuilderInterface;
 use Sherpa\Rest\Builder\RestBuilder;
-use Sherpa\Rest\Middleware\AddAdapter;
+use Sherpa\Rest\Middleware\AddDoctrineAdapter;
 use Sherpa\Rest\Middleware\AddBuilder;
 use Sherpa\Rest\Middleware\AddController;
 use Sherpa\Rest\Middleware\AddFormatter;
@@ -32,39 +35,34 @@ use Sherpa\Rest\Validator\RestValidatorInterface;
  *
  * @author cevantime
  */
-class Declaration implements DeclarationInterface
+class Declaration extends \Sherpa\Declaration\Declaration
 {
-    
-    public function register(App $app)
+
+    public function custom(App $app)
     {
         $routerContainer = $app->getRouter();
-        
-        $routerContainer->setMapFactory(function() use ($app) {
-            return new CrudMap(new CrudRoute(), $app->get('namespace'));
+
+        $routerContainer->setMapFactory(function () use ($app) {
+            return new CrudMap(new CrudRoute(), $app->get('project.namespace'));
         });
-        $routerContainer->setRouteFactory(function(){
+        $routerContainer->setRouteFactory(function () {
             return new CrudRoute();
         });
-        
-        $containerBuilder = $app->getContainerBuilder();
-        
-        $generator = $app->getRouter()->getGenerator();
-        
-        $containerBuilder->addDefinitions([
-            Generator::class => function() use ($generator) {
-                return $generator;
+
+        $app->pipe(AddValidator::class, 0, RequestHandler::class);
+        $app->pipe(AddBuilder::class, 0, RequestHandler::class);
+        $app->pipe(AddTransformer::class, 0, RequestHandler::class);
+        $app->pipe(AddFormatter::class, 0, RequestHandler::class);
+        $app->pipe(AddController::class, 0, RequestHandler::class);
+    }
+
+    public function definitions(ContainerBuilder $builder)
+    {
+        $builder->addDefinitions([
+            Generator::class => function (ContainerInterface $container) {
+                return $container->get('router')->getGenerator();
             }
         ]);
-
-        $app->delayed(function(App $app){
-            $container = $app->getContainer();
-            $app->add(new AddValidator($container));
-            $app->add(new AddBuilder($container));
-            $app->add(new AddAdapter($container));
-            $app->add(new AddTransformer($container));
-            $app->add(new AddFormatter($container));
-            $app->add(new AddController($container));
-        });
     }
 
 }

@@ -32,10 +32,13 @@ abstract class AddProcessor implements MiddlewareInterface
 
     private $type;
 
-    public function __construct(ContainerInterface $container, string $type)
+    private $classPrefix;
+
+    public function __construct(ContainerInterface $container, string $type, string $classPrefix = 'Default')
     {
         $this->container = $container;
         $this->type = $type;
+        $this->classPrefix = $classPrefix;
     }
 
     /**
@@ -51,7 +54,8 @@ abstract class AddProcessor implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        $class = $this->getClass($request, $route);
+        $class = $this->getClass($route);
+
         $this->container->set($classname, $this->container->get($class));
 
         return $handler->handle($request);
@@ -59,12 +63,12 @@ abstract class AddProcessor implements MiddlewareInterface
 
     public function getClass($route)
     {
-        if ($validator = $route->{'get' . ucfirst($this->type)}()) {
-            return $validator;
-        } else if (class_exists($validator = $this->container->get('namespace') . ucfirst($this->type) . '\\' . ClassNameResolver::getShortClassName($route->getEntityClass()) . ucfirst($this->type))) {
-            return $validator;
+        if ($processor = $route->{'get' . ucfirst($this->type)}()) {
+            return $processor;
+        } else if (class_exists($processor = $this->container->get('project.namespace') . ucfirst($this->type) . '\\' . ClassNameResolver::getShortClassName($route->getEntityClass()) . ucfirst($this->type))) {
+            return $processor;
         } else {
-            return 'Sherpa\\Rest\\' . ucfirst($this->type) . '\\DefaultRest' . ucfirst($this->type);
+            return 'Sherpa\\Rest\\' . ucfirst($this->type) . '\\'.ucfirst($this->classPrefix).'Rest' . ucfirst($this->type);
         }
     }
 }

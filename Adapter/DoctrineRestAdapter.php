@@ -4,6 +4,8 @@ namespace Sherpa\Rest\Adapter;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\Repository\DefaultRepositoryFactory;
+use Psr\Container\ContainerInterface;
 use Sherpa\Rest\Utils\Bag;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
 use Psr\Http\Message\ServerRequestInterface;
@@ -16,14 +18,16 @@ use Sherpa\Rest\Service\RestFormatter;
  *
  * @author cevantime
  */
-class DefaultRestAdapter extends RestAdapter
+class DoctrineRestAdapter extends RestAdapter
 {
 
     private $em;
+    private $container;
 
-    public function __construct(EntityManagerInterface $em)
+    public function __construct(EntityManagerInterface $em, ContainerInterface $container)
     {
         $this->em = $em;
+        $this->container = $container;
     }
 
     public function getEntityFromParams($id, Bag $params)
@@ -47,7 +51,12 @@ class DefaultRestAdapter extends RestAdapter
      */
     protected function getListQueryBuilder($alias, Bag $params)
     {
-        $repository = $this->em->getRepository($this->entityClass);
+        $metadata = $this->em->getClassMetadata($this->entityClass);
+        if($metadata->customRepositoryClassName) {
+            $repository = $this->container->get($metadata->customRepositoryClassName);
+        } else {
+            $repository = $this->em->getRepository($this->entityClass);
+        }
 
         if ($repository instanceof DoctrineRestQueryBuilderInterface) {
             $qb = $repository->createQueryBuilderFromArray($alias, $params);
