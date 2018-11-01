@@ -2,3 +2,5 @@ actor: ApiTester
 modules:
     enabled:
         - \Helper\Api
+        - REST:
+              url:

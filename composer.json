@@ -3,7 +3,7 @@
     "description": "A simple rest plugin for sherpa framework",
     "type": "library",
     "require": {
-        "cevantime/sherpa-framework": "0.0.1",
+        "php": ">=7.2",
         "pagerfanta/pagerfanta": "^1.0@dev",
         "league/fractal": "^0.13.0@dev",
         "symfony/property-access": "^4.2@dev"
@@ -17,10 +17,11 @@
     ],
     "autoload": {
         "psr-4": {
-            "Sherpa\\": "src/"
+            "Sherpa\\Rest\\": "src/"
         }
     },
     "require-dev": {
+        "cevantime/sherpa-doctrine": "0.0.1",
         "symfony/yaml": "2.*",
         "doctrine/orm": "2.*",
         "doctrine/common": "^2.9",
