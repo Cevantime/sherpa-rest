@@ -4,9 +4,9 @@
     "type": "library",
     "require": {
         "php": ">=7.2",
-        "pagerfanta/pagerfanta": "^1.0@dev",
-        "league/fractal": "^0.13.0@dev",
-        "symfony/property-access": "^4.2@dev"
+        "pagerfanta/pagerfanta": "^2.0",
+        "league/fractal": "^0.17.0",
+        "symfony/property-access": "^4.1"
     },
     "license": "MIT",
     "authors": [
@@ -22,10 +22,6 @@
     },
     "require-dev": {
         "cevantime/sherpa-doctrine": "0.0.1",
-        "symfony/yaml": "2.*",
-        "doctrine/orm": "2.*",
-        "doctrine/common": "^2.9",
-        "doctrine/migrations": "^1.8",
         "codeception/codeception": "^2.5"
     }
 }
