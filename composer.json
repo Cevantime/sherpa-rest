@@ -4,13 +4,9 @@
     "type": "library",
     "require": {
         "cevantime/sherpa-framework": "0.0.1",
-        "symfony/yaml": "2.*",
-        "doctrine/orm": "2.*",
-        "doctrine/common": "^2.9",
-        "doctrine/migrations": "^1.8",
         "pagerfanta/pagerfanta": "^1.0@dev",
         "league/fractal": "^0.13.0@dev",
-        "symfony/property-access": "^4.2@dev",
+        "symfony/property-access": "^4.2@dev"
     },
     "license": "MIT",
     "authors": [
@@ -19,5 +15,16 @@
             "email": "thibaulttruffert@hotmail.com"
         }
     ],
-    "minimum-stability": "dev"
+    "autoload": {
+        "psr-4": {
+            "Sherpa\\": "src/"
+        }
+    },
+    "require-dev": {
+        "symfony/yaml": "2.*",
+        "doctrine/orm": "2.*",
+        "doctrine/common": "^2.9",
+        "doctrine/migrations": "^1.8",
+        "codeception/codeception": "^2.5"
+    }
 }

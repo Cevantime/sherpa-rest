@@ -20,14 +20,6 @@ class CrudRoute extends Route
     private $transformer;
     private $validator;
 
-    public function __clone()
-    {
-        parent::__clone();
-        $this->attributes([
-            '_route' => $this
-        ]);
-    }
-
     /**
      * @return mixed
      */
