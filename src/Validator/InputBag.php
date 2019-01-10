@@ -21,10 +21,6 @@ class InputBag implements \ArrayAccess
      * @var Bag
      */
     protected $uploadedFiles;
-    /**
-     * @var Bag
-     */
-    protected $errors;
 
     /**
      * Validator constructor.
@@ -35,7 +31,6 @@ class InputBag implements \ArrayAccess
     {
         $this->data = new Bag($data);
         $this->uploadedFiles = new Bag($uploadedFiles);
-        $this->errors = new Bag([]);
     }
 
     /**
@@ -68,22 +63,6 @@ class InputBag implements \ArrayAccess
     public function setUploadedFiles(Bag $uploadedFiles): void
     {
         $this->uploadedFiles = $uploadedFiles;
-    }
-
-    /**
-     * @return Bag
-     */
-    public function getErrors(): Bag
-    {
-        return $this->errors;
-    }
-
-    /**
-     * @param Bag $errors
-     */
-    public function setErrors(Bag $errors): void
-    {
-        $this->errors = $errors;
     }
 
     /**

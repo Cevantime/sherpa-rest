@@ -43,6 +43,17 @@ class DoctrineRestAdapter extends RestAdapter
         return new DoctrineORMAdapter($qb);
     }
 
+    protected function getRepository()
+    {
+        $metadata = $this->em->getClassMetadata($this->entityClass);
+        if($metadata->customRepositoryClassName) {
+            $repository = $this->container->get($metadata->customRepositoryClassName);
+        } else {
+            $repository = $this->em->getRepository($this->entityClass);
+        }
+        return $repository;
+    }
+
     /**
      *
      * @param EntityManagerInterface $em
@@ -51,12 +62,7 @@ class DoctrineRestAdapter extends RestAdapter
      */
     protected function getListQueryBuilder($alias, Bag $params)
     {
-        $metadata = $this->em->getClassMetadata($this->entityClass);
-        if($metadata->customRepositoryClassName) {
-            $repository = $this->container->get($metadata->customRepositoryClassName);
-        } else {
-            $repository = $this->em->getRepository($this->entityClass);
-        }
+        $repository = $this->getRepository();
 
         if ($repository instanceof DoctrineRestQueryBuilderInterface) {
             $qb = $repository->createQueryBuilderFromArray($alias, $params);
@@ -69,7 +75,7 @@ class DoctrineRestAdapter extends RestAdapter
 
     protected function getItemQueryBuilder($alias, $identifier, Bag $params)
     {
-        $repository = $this->em->getRepository($this->entityClass);
+        $repository = $this->getRepository();
 
         if ($repository instanceof DoctrineRestQueryBuilderInterface) {
             $qb = $repository->createQueryBuilderFromIdentifier($alias, $identifier, $params);

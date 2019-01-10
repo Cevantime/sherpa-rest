@@ -86,7 +86,6 @@ class RestCrudController implements RestCrudControllerInterface
     {
         $this->setEntityClasses([$this->adapter, $this->builder, $this->formatter, $this->validator]);
         $input = $this->extractInputFromRequest($request);
-
         $valid = $this->validator->validate($input);
 
         if ($valid) {
@@ -95,7 +94,7 @@ class RestCrudController implements RestCrudControllerInterface
             return $this->createItemResponse($object);
         }
 
-        $this->createError($input->getErrors()->toArray()[0], 400);
+        $this->createError($input->getErrors()->toArray()[0] ?? 'Unknown validation error', 400);
 
     }
 
@@ -103,17 +102,16 @@ class RestCrudController implements RestCrudControllerInterface
     {
         $this->setEntityClasses([$this->adapter, $this->builder, $this->formatter, $this->validator]);
         $input = $this->extractInputFromRequest($request);
-
-        $valid = $this->validator->validate($input);
+        $object = $this->adapter->getEntityFromParams($id, $input->getSentData());
+        $valid = $this->validator->validate($input, $object);
 
         if ($valid) {
-            $object = $this->adapter->getEntityFromParams($id, $input->getSentData());
             $this->builder->update($input, $object);
             $this->adapter->persistEntity($object);
             return $this->createItemResponse($object);
         }
 
-        $this->createError($input->getErrors()->toArray()[0], 400);
+        $this->createError($input->getErrors()->toArray()[0] ?? 'Unknown validation error', 400);
 
     }
 

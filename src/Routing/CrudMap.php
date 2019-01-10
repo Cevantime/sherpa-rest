@@ -51,19 +51,16 @@ class CrudMap extends Map
                 ->setEntityClass($entityClass);
             $map->get('item', '/{id}', $controllerClass . '::getItem')
                 ->setControllerClass($controllerClass)
-                ->setEntityClass($entityClass)
-                ->tokens(['id' => '\d+']);
+                ->setEntityClass($entityClass);
             $map->post('create', '', $controllerClass . '::createItem')
                 ->setControllerClass($controllerClass)
                 ->setEntityClass($entityClass);
             $map->delete('delete', '/{id}', $controllerClass . '::deleteItem')
                 ->setControllerClass($controllerClass)
-                ->setEntityClass($entityClass)
-                ->tokens(['id' => '\d+']);
+                ->setEntityClass($entityClass);
             $map->put('update', '/{id}', $controllerClass . '::updateItem')
                 ->setControllerClass($controllerClass)
-                ->setEntityClass($entityClass)
-                ->tokens(['id' => '\d+']);
+                ->setEntityClass($entityClass);
 
             if (is_callable($extends)) {
                 $extends($map, $controllerClass);

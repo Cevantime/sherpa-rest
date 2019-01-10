@@ -11,13 +11,8 @@ namespace Sherpa\Rest\Validator;
 
 class DefaultRestValidator implements RestValidatorInterface
 {
-
-    /**
-     * @return boolean
-     */
-    public function validate(InputBag $data)
+    public function validate(InputBag $input, $initialObject = null)
     {
         return true;
     }
-
 }
