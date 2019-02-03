@@ -15,6 +15,7 @@ use Sherpa\Rest\Adapter\DoctrineRestAdapter;
 use Sherpa\Rest\Adapter\RestAdapterInterface;
 use Sherpa\Rest\Builder\RestBuilderInterface;
 use Sherpa\Rest\Builder\RestBuilder;
+use Sherpa\Rest\Middleware\AddAdapter;
 use Sherpa\Rest\Middleware\AddDoctrineAdapter;
 use Sherpa\Rest\Middleware\AddBuilder;
 use Sherpa\Rest\Middleware\AddController;
@@ -54,6 +55,7 @@ class Declaration extends \Sherpa\Declaration\Declaration
         $app->pipe(AddTransformer::class, 0, RequestHandler::class);
         $app->pipe(AddFormatter::class, 0, RequestHandler::class);
         $app->pipe(AddController::class, 0, RequestHandler::class);
+        $app->pipe(AddAdapter::class, 0, RequestHandler::class);
     }
 
     public function definitions(ContainerBuilder $builder)

@@ -45,26 +45,18 @@ class CrudMap extends Map
 
     private function makeCrud($controllerClass, $entityClass, $extends, $prefixRoute, $prefixPath)
     {
-        $this->attach($prefixRoute, $prefixPath, function (Map $map) use ($controllerClass, $entityClass, $extends) {
-            $map->get('list', '', $controllerClass . '::getList')
-                ->setControllerClass($controllerClass)
-                ->setEntityClass($entityClass);
-            $map->get('item', '/{id}', $controllerClass . '::getItem')
-                ->setControllerClass($controllerClass)
-                ->setEntityClass($entityClass);
-            $map->post('create', '', $controllerClass . '::createItem')
-                ->setControllerClass($controllerClass)
-                ->setEntityClass($entityClass);
-            $map->delete('delete', '/{id}', $controllerClass . '::deleteItem')
-                ->setControllerClass($controllerClass)
-                ->setEntityClass($entityClass);
-            $map->put('update', '/{id}', $controllerClass . '::updateItem')
-                ->setControllerClass($controllerClass)
-                ->setEntityClass($entityClass);
 
+        $this->attach($prefixRoute, $prefixPath, function (Map $map) use ($controllerClass, $entityClass, $extends) {
+            $map->getProtoRoute()->setEntityClass($entityClass);
+            $map->getProtoRoute()->setControllerClass($controllerClass);
             if (is_callable($extends)) {
                 $extends($map, $controllerClass);
             }
+            $map->get('list', '', $controllerClass . '::getList');
+            $map->get('item', '/{id}', $controllerClass . '::getItem');
+            $map->post('create', '', $controllerClass . '::createItem');
+            $map->delete('delete', '/{id}', $controllerClass . '::deleteItem');
+            $map->put('update', '/{id}', $controllerClass . '::updateItem');
         });
     }
 
